@@ -112,7 +112,7 @@
     el.addEventListener('pointermove', e => on && move(e));
     el.addEventListener('pointerup', () => on = false);
     el.addEventListener('keydown', e => { const v = parseFloat(getComputedStyle(el).getPropertyValue('--x')) || 50; if (e.key === 'ArrowLeft') set(v - 4); if (e.key === 'ArrowRight') set(v + 4); });
-    el.tabIndex = 0; el.setAttribute('role', 'slider'); el.setAttribute('aria-label', 'Before - After');
+    el.tabIndex = 0; el.setAttribute('role', 'slider'); el.setAttribute('aria-label', window.APEX ? APEX.t('Before - After') : 'Before - After');
   }
 
   function loadImage(src){
@@ -149,12 +149,12 @@
   window.WhatIf = {SAMPLE, AREAS, simulate, slider, loadImage, toCanvas, areaShapes, loadMesh, detect};
 
   /* home teaser: the real filter on the sample photo (stored landmarks), then on the visitor's own photo */
-  window.WhatIfTeaser = function(el){
+  window.WhatIfTeaser = function(el, on){
     if (!el) return null;
     const A = window.APEX;
-    el.innerHTML = `<span class="tag l">Before</span><span class="tag r">After</span><div class="handle"></div><span class="knob">${A.ic('move-horizontal')}</span><span class="hint" aria-hidden="true">${A.ic('pointer')}</span><span class="scan" aria-hidden="true"></span>`;
+    el.innerHTML = `<span class="tag l">${A.esc(A.t('Before'))}</span><span class="tag r">${A.esc(A.t('After'))}</span><div class="handle"></div><span class="knob">${A.ic('move-horizontal')}</span><span class="hint" aria-hidden="true">${A.ic('pointer')}</span><span class="scan" aria-hidden="true"></span>`;
     slider(el);
-    let base = null, lm = null, areas = ['forehead', 'glabella', 'crowsfeet'], touched = false, sweepT = 0, seen = false;
+    let base = null, lm = null, areas = (on || ['forehead', 'glabella', 'crowsfeet']).slice(), touched = false, sweepT = 0, seen = false;
     function draw(){
       if (!base || !lm) return;
       el.querySelectorAll('canvas').forEach(c => c.remove());

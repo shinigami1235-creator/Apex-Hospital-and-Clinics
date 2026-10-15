@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Apex Medical Center 一家外科医院和美容诊所服务</title>
+<meta name="description" content="美容服务中心 Apex 整形外科医院旗下的所有外科服务，包括 Apex 诊所医院旗下的各种手术。">
+<meta name="theme-color" content="#1F0A30">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="alternate" hreflang="en" href="../index.html">
+<link rel="preconnect" href="https://www.apexmedicalcenter.co.th">
+<link rel="preload" href="../assets/fonts/LINESeedSansTH-Rg.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../assets/css/apex.css">
+</head>
+<body data-page="home">
+<main id="main">
+  <!-- 1. Film stage -->
+  <section class="hero" id="hero">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <svg class="hero-lines" aria-hidden="true" viewBox="0 0 1440 900" preserveAspectRatio="none"><g fill="none" stroke="rgba(201,179,221,.18)" stroke-width="1"><path d="M-40 820 C 300 640, 520 300, 720 120 S 1160 -40, 1500 60"/><path d="M-40 880 C 340 700, 600 360, 790 190 S 1200 40, 1500 140"/></g></svg>
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <h1 id="hero-h1"></h1>
+        <p class="hero-sub" id="hero-sub"></p>
+        <p class="hero-cap" aria-live="polite"><span id="cap"></span></p>
+      </div>
+      <div class="screen" id="screen">
+        <span class="screen-arch" aria-hidden="true"></span>
+        <img class="amb" id="amb" alt="" aria-hidden="true">
+        <div class="screen-tilt" id="tilt">
+          <span class="plate p2" aria-hidden="true"></span>
+          <span class="plate p1" aria-hidden="true"></span>
+          <div class="bezel">
+            <div class="portal" id="portal">
+              <img class="poster" id="poster" alt="" src="https://www.apexmedicalcenter.co.th/wp-content/uploads/2025/02/apex-hospital-beauty-clinic.webp">
+            </div>
+            <span class="glare" aria-hidden="true"></span>
+          </div>
+          <img class="refl" id="refl" alt="" aria-hidden="true">
+        </div>
+        <div class="screen-bar">
+          <span class="count" id="count"></span>
+          <div class="reel" id="reel" role="tablist"></div>
+          <div class="reel-meta"><a id="yt-ch" class="ytlink" target="_blank" rel="noopener"></a><button class="sound" id="sound" type="button"></button></div>
+        </div>
+      </div>
+    </div>
+    <span class="scroll-cue" aria-hidden="true"></span>
+  </section>
+
+  <!-- 2. Intro -->
+  <section class="section">
+    <div class="wrap intro-grid">
+      <div>
+        <p class="intro-text" id="intro"></p>
+        <a class="link-arrow rv" id="about-link" href="about.html"></a>
+      </div>
+      <div class="intro-photo rv" id="intro-photo"></div>
+    </div>
+  </section>
+
+  <!-- 3. Face Atlas -->
+  <section class="section washed" id="atlas-sec">
+    <div class="wrap">
+      <div class="shead"><h2 class="h-xl rv">Our Services</h2><a class="link-arrow rv" href="services.html">All services <span data-ic="arrow-right"></span></a></div>
+      <div class="atlas" id="atlas"></div>
+    </div>
+  </section>
+
+  <!-- 4. Recommendation service -->
+  <section class="section" style="padding-top:clamp(60px,7vw,100px)">
+    <div class="wrap">
+      <div class="shead"><h2 class="h-l rv" id="rec-h"></h2><div class="rail-ctrl"><button id="rec-prev" aria-label="Previous"></button><button id="rec-next" aria-label="Next"></button></div></div>
+      <div class="rail" id="rec"></div>
+    </div>
+  </section>
+
+  <!-- 5. What if -->
+  <section class="section night" id="whatif">
+    <div class="wrap wi-teaser">
+      <div class="ba-ring rv-clip">
+        <div class="ba" id="wi-ba" style="--x:52%"></div>
+        <button class="ba-up" id="wi-up" type="button"><span data-ic="upload"></span>Upload</button>
+      </div>
+      <div>
+        <h2 class="display rv">What if?</h2>
+        <p class="lead rv" id="wi-lead"></p>
+        <div class="wi-treat rv" id="wi-areas" style="margin:22px 0 30px"></div>
+        <div class="wi-acts rv">
+          <button class="btn btn-light" id="wi-up2" type="button"><span data-ic="upload"></span>Upload</button>
+          <a class="btn btn-ghost" href="what-if.html#camera"><span data-ic="camera"></span>Camera</a>
+          <a class="link-arrow" id="wi-link" href="service.html?p=service/botox">Botox <span data-ic="arrow-right"></span></a>
+        </div>
+        <input type="file" id="wi-file" accept="image/*" hidden>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Promotions -->
+  <section class="section washed">
+    <div class="wrap">
+      <div class="shead"><h2 class="h-xl rv" id="promo-h"></h2><a class="link-arrow rv" id="promo-all" href="promotion.html"></a></div>
+      <div class="deck" id="deck"></div>
+      <div class="deck-nav"><div class="rail-ctrl"><button id="deck-prev" aria-label="Previous"></button></div><div class="deck-dots" id="deck-dots"></div><div class="rail-ctrl"><button id="deck-next" aria-label="Next"></button></div></div>
+    </div>
+  </section>
+
+  <!-- 7. Doctor teams -->
+  <section class="section night" style="overflow:hidden">
+    <div class="wrap"><div class="shead"><h2 class="h-xl rv">Doctor teams</h2><a class="link-arrow rv" href="doctors.html">Doctor teams <span data-ic="arrow-right"></span></a></div></div>
+    <div class="marquee" style="--d:90s"><div class="marquee-track" id="docs-a"></div></div>
+    <div class="marquee rev" style="--d:100s;margin-top:26px"><div class="marquee-track" id="docs-b"></div></div>
+  </section>
+
+  <!-- 8. Why choose -->
+  <section class="section">
+    <div class="wrap why">
+      <div class="why-sticky"><h2 class="h-xl rv" id="why-h"></h2><p class="lead rv" id="why-p" style="margin-top:24px"></p></div>
+      <div id="why-rows"></div>
+    </div>
+  </section>
+
+  <!-- 9. Results -->
+  <section class="section washed">
+    <div class="wrap">
+      <div class="shead"><h2 class="h-xl rv">Our Exclusive Clients</h2><p class="note rv">Results may vary from person to person.</p></div>
+      <div class="results" id="results"></div>
+    </div>
+  </section>
+
+  <!-- 10. Google reviews -->
+  <section class="section night">
+    <div class="wrap">
+      <div class="rv-head" id="rv-head"></div>
+      <div class="vmarquee" id="reviews"></div>
+    </div>
+  </section>
+
+  <!-- 11. Videos -->
+  <section class="section">
+    <div class="wrap">
+      <div class="shead"><h2 class="h-l rv"><a id="yt-h" target="_blank" rel="noopener"></a></h2><div class="rail-ctrl"><button id="v-prev" aria-label="Previous"></button><button id="v-next" aria-label="Next"></button></div></div>
+      <div class="rail" id="videos"></div>
+    </div>
+  </section>
+
+  <!-- 12. Latest updates -->
+  <section class="section washed">
+    <div class="wrap">
+      <div class="shead"><h2 class="h-xl rv" id="latest-h"></h2><a class="link-arrow rv" id="latest-link" href="updates.html"><span data-ic="facebook"></span>Apex International Thailand <span data-ic="arrow-right"></span></a></div>
+      <div class="updates">
+        <div class="fbframe rv" id="fb"></div>
+        <div class="post-list" id="posts"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13. Partners -->
+  <section class="section" style="padding-bottom:40px">
+    <div class="wrap"><h2 class="h-m rv muted" id="partners-h" style="margin-bottom:34px;text-align:center"></h2></div>
+    <div class="marquee logos" style="--d:70s"><div class="marquee-track" id="partners"></div></div>
+  </section>
+
+  <!-- 14. Consultation -->
+  <section class="section" style="padding-top:60px">
+    <div class="wrap"><div class="consult" id="consult"></div></div>
+  </section>
+</main>
+
+<script src="../assets/js/icons.js"></script>
+<script src="../assets/data/zh/shared.js"></script>
+<script src="../assets/data/zh/home.js"></script>
+<script src="../assets/data/zh/media.js"></script>
+<script src="../assets/data/zh/doctors.js"></script>
+<script src="../assets/data/zh/services.js"></script>
+<script src="../assets/data/facemesh.js"></script>
+<script src="../assets/js/core.js"></script>
+<script src="../assets/js/whatif-core.js"></script>
+<script src="../assets/js/home.js"></script>
+<script type="module" src="../assets/js/atlas.js"></script>
+</body>
+</html>

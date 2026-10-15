@@ -8,22 +8,9 @@ const start = () => { const h = document.getElementById('atlas'); if (h && FM &&
 start(); document.addEventListener('apex:ready', start);
 
 function init(host){
-  // region label (words used on Apex pages) + treatments (service keys)
-  const REG = {
-    forehead:  {x:'Forehead',             s:['service/botox','service/endotine-forehead-lift','service/ulthera','ultherapy-prime']},
-    glabella:  {x:'Between the eyebrows', s:['service/botox','service/line-wrinkle']},
-    crowsfeet: {x:'Crow’s feet',          s:['service/botox','service/line-wrinkle','service/facial-face-toning-pigmentation']},
-    eyes:      {x:'Eyes',                 s:['double-eyelid-surgery','service/blepharoplasty','service/eye-bags']},
-    nose:      {x:'Nose',                 s:['nose-surgery','service/rhinoplasty']},
-    cheeks:    {x:'Cheeks',               s:['harmonyca','profhilo','service/dermal-fillers','service/zygoma-reduction','service/bio-lift']},
-    nasolabial:{x:'Nasolabial folds',     s:['harmonyca','filler-injection','service/dermal-fillers']},
-    lips:      {x:'Lips',                 s:['filler-injection','service/dermal-fillers']},
-    chin:      {x:'Chin',                 s:['service/chin-augmentation','filler-injection','service/under-chin-liposuction']},
-    jawline:   {x:'Jawline',              s:['face-lift','service/face-and-neck-lift','ultherapy-prime','service/under-chin-liposuction']},
-  };
+  // region label (the site's own words) + its treatments, resolved per language at build time
+  const REG = A.shared.atlas;
   const ORDER = ['forehead','glabella','crowsfeet','eyes','nose','cheeks','nasolabial','lips','chin','jawline'];
-  const labelOf = {};
-  A.shared.centers.forEach(c => c.items.forEach(it => { if (it.key && !labelOf[it.key]) labelOf[it.key] = {label:it.label, center:c.name, img:it.img}; }));
 
   host.innerHTML = `<div class="atlas-stage" id="atlas-stage"><div class="atlas-tags"></div><div class="atlas-hint">${A.ic('move-horizontal')}</div></div>
     <aside class="atlas-panel" aria-live="polite"><h3 id="atlas-title"></h3><div class="chips" id="atlas-chips"></div><div class="atlas-list" id="atlas-list"></div></aside>`;
@@ -121,7 +108,7 @@ function init(host){
     for (let i = 0; i < nv; i++) if (RI[i] === ri && (side === 0 || vx(i) < -0.2)) { acc[0] += vx(i); acc[1] += vy(i); acc[2] += vz(i); acc[3]++; }
     cent[k] = new THREE.Vector3(acc[0]/acc[3], acc[1]/acc[3], acc[2]/acc[3] + .6);
   });
-  tagsEl.innerHTML = ORDER.map(k => `<button class="atlas-tag" data-k="${k}">${REG[k].x}</button>`).join('');
+  tagsEl.innerHTML = ORDER.map(k => `<button class="atlas-tag" data-k="${k}">${A.esc(REG[k].x)}</button>`).join('');
   const tags = [...tagsEl.children];
 
   // ---- panel ----
@@ -135,11 +122,7 @@ function init(host){
     titleEl.textContent = REG[k].x;
     tags.forEach(t => t.classList.toggle('on', t.dataset.k === k));
     [...chipsEl.children].forEach(c => c.setAttribute('aria-pressed', c.dataset.k === k));
-    listEl.innerHTML = REG[k].s.filter(key => A.services[key]).map((key, i) => {
-      const s = A.services[key], l = labelOf[key] || {};
-      const img = l.img || s.thumb;
-      return `<a class="atlas-item" style="animation-delay:${i*50}ms" href="service.html?p=${key}">${img ? `<img loading="lazy" src="${A.img(img)}" alt="">` : `<span class="noimg">${A.ic('sparkles')}</span>`}<span><b>${A.esc(l.label || s.title)}</b><small>${A.esc(l.center || '')}</small></span>${A.ic('arrow-up-right')}</a>`;
-    }).join('');
+    listEl.innerHTML = REG[k].items.map((it, i) => `<a class="atlas-item" style="animation-delay:${i*50}ms" href="${it.h}">${it.img ? `<img loading="lazy" src="${A.img(it.img)}" alt="">` : `<span class="noimg">${A.ic('sparkles')}</span>`}<span><b>${A.esc(it.x)}</b><small>${A.esc(it.c || '')}</small></span>${A.ic('arrow-up-right')}</a>`).join('');
     targetRot.y = (k === 'crowsfeet' || k === 'jawline') ? .55 : (k === 'cheeks' || k === 'nasolabial' ? .3 : 0);
   }
   tagsEl.addEventListener('click', e => { const b = e.target.closest('.atlas-tag'); if (b) select(b.dataset.k, true); });

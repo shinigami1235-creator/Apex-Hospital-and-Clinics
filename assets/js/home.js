@@ -68,7 +68,7 @@ APEX.boot(() => {
 
   /* ---------- 2. intro: words light up as you read ---------- */
   const intro = A.qs('#intro');
-  intro.innerHTML = H.intro.split(' ').map(w => `<span class="w">${A.esc(w)}</span>`).join(' ');
+  intro.innerHTML = [].concat(H.intro).join(' ').split(' ').map(w => `<span class="w">${A.esc(w)}</span>`).join(' ');
   const ws = A.qsa('.w', intro);
   const lightWords = () => {
     const r = intro.getBoundingClientRect(), vh = innerHeight;
@@ -87,12 +87,12 @@ APEX.boot(() => {
   A.railCtrl(A.qs('#rec'), A.qs('#rec-prev'), A.qs('#rec-next'));
 
   /* ---------- 5. what-if teaser ---------- */
-  const botox = A.services['service/botox'];
-  const areasP = botox.blocks.find(b => b.t === 'p' && b.x.startsWith('Treatment Areas'));
-  A.qs('#wi-lead').textContent = areasP ? areasP.x : '';
-  const W = window.WhatIf, teaser = window.WhatIfTeaser && window.WhatIfTeaser(A.qs('#wi-ba'));
+  const WI = S.whatif;
+  A.qs('#wi-lead').textContent = WI.lead;
+  const teaser = window.WhatIfTeaser && window.WhatIfTeaser(A.qs('#wi-ba'), WI.on);
   const wiAreas = A.qs('#wi-areas');
-  wiAreas.innerHTML = ['forehead', 'glabella', 'crowsfeet'].map(k => `<button class="chip" type="button" aria-pressed="true" data-k="${k}">${W.AREAS[k].x}</button>`).join('');
+  wiAreas.innerHTML = WI.on.map(k => `<button class="chip" type="button" aria-pressed="true" data-k="${k}">${A.esc(WI.areas[k])}</button>`).join('');
+  A.qs('#wi-link').href = WI.link.h; A.qs('#wi-link').firstChild.nodeValue = WI.link.x + ' ';
   wiAreas.addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b || !teaser) return; b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'); teaser.setAreas(A.qsa('.chip[aria-pressed=true]', wiAreas).map(x => x.dataset.k)); });
   const wiFile = A.qs('#wi-file');
   ['#wi-up', '#wi-up2'].forEach(id => { const b = A.qs(id); b.addEventListener('click', () => wiFile.click()); b.addEventListener('pointerenter', () => teaser && teaser.preload(), {once:true}); });
@@ -138,9 +138,10 @@ APEX.boot(() => {
   A.qs('#docs-b').innerHTML = rb.concat(rb).map(chip).join('');
 
   /* ---------- 8. why ---------- */
-  A.qs('#why-h').textContent = H.why.h; A.qs('#why-p').textContent = H.why.intro;
+  if (!H.why) A.qs('#why-h').closest('section').remove();
+  else { A.qs('#why-h').textContent = H.why.h; A.qs('#why-p').textContent = H.why.intro || '';
   const wico = ['shield-check', 'stethoscope', 'layers'];
-  A.qs('#why-rows').innerHTML = H.why.items.map((w, i) => `<div class="why-row rv" data-d="${i * 80}"><span class="why-ico">${A.ic(wico[i])}</span><div><h3>${A.esc(w.h)}</h3><p>${A.esc(w.p)}</p></div></div>`).join('');
+  A.qs('#why-rows').innerHTML = H.why.items.map((w, i) => `<div class="why-row rv" data-d="${i * 80}"><span class="why-ico">${A.ic(wico[i])}</span><div><h3>${A.esc(w.h)}</h3><p>${A.esc(w.p)}</p></div></div>`).join(''); }
 
   /* ---------- 9. results wall ---------- */
   const res = [];
@@ -149,11 +150,14 @@ APEX.boot(() => {
   A.qs('#results').addEventListener('click', e => { const f = e.target.closest('figure'); if (!f) return; const r = res[+f.dataset.i]; A.lightbox.images(r.g.imgs.map(s => ({src:s, alt:r.g.title})), r.k); });
 
   /* ---------- 10. Google reviews ---------- */
-  const R = M.reviews;
+  const R = H.reviews || M.reviews;
   const stars = n => `<span class="stars" aria-label="${n} stars">${Array.from({length:n}, () => '<svg class="i" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z"/></svg>').join('')}</span>`;
-  A.qs('#rv-head').innerHTML = `<div class="score"><b>${R.rating}</b><div>${stars(5)}<div class="gmark" style="margin-top:6px">${A.ic('google')} ${R.count} · Google</div></div></div>
+  A.qs('#rv-head').innerHTML = R.label
+    ? `<div class="score"><b class="word">${A.esc(R.label)}</b><div>${stars(5)}<div class="gmark" style="margin-top:6px">${A.ic('google')} ${A.esc(R.countText)}</div></div></div>
+    <p class="lead" style="margin:0">${A.esc(M.reviews.place)}</p><a class="btn btn-ghost" href="${M.reviews.url}" target="_blank" rel="noopener">${A.ic('google')}Google ${A.ic('arrow-up-right')}</a>`
+    : `<div class="score"><b>${R.rating}</b><div>${stars(5)}<div class="gmark" style="margin-top:6px">${A.ic('google')} ${R.count} · Google</div></div></div>
     <p class="lead" style="margin:0">${A.esc(R.place)}</p><a class="btn btn-ghost" href="${R.url}" target="_blank" rel="noopener">${A.ic('google')}Google ${A.ic('arrow-up-right')}</a>`;
-  const card = r => `<article class="rcard">${stars(5)}<p>${A.esc(r.text)}</p><div class="who"><span class="av">${A.esc(r.name.trim()[0].toUpperCase())}</span><span><b>${A.esc(r.name)}</b>${A.esc(r.when)}</span></div></article>`;
+  const card = r => `<article class="rcard">${stars(5)}<p>${A.esc(r.text)}</p><div class="who"><span class="av">${A.esc((r.name.trim()[0] || '·').toUpperCase())}</span><span><b>${A.esc(r.name)}</b>${A.esc(r.when)}</span></div></article>`;
   const cols = [[], [], []]; R.reviews.forEach((r, i) => cols[i % 3].push(r));
   A.qs('#reviews').innerHTML = cols.map((c, k) => `<div class="vmarquee-col"><div class="vmarquee-track" style="--d:${80 + k * 14}s">${c.concat(c).map(card).join('')}</div></div>`).join('');
 
@@ -167,24 +171,20 @@ APEX.boot(() => {
 
   /* ---------- 12. updates: facebook + latest posts ---------- */
   A.qs('#latest-h').textContent = H.latestH;
-  const fbw = Math.min(500, A.qs('#fb').clientWidth - 20 || 480);
-  A.qs('#fb').innerHTML = `<div class="fbhead">${A.ic('facebook')}<b>Apex International Thailand</b></div><iframe loading="lazy" title="Apex International Thailand on Facebook" height="620" src="https://www.facebook.com/plugins/page.php?href=${encodeURIComponent('https://www.facebook.com/ApexInterThailand/')}&tabs=timeline&width=${fbw}&height=620&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false" allow="encrypted-media"></iframe>`;
-  A.qs('#posts').innerHTML = H.posts.map((p, i) => `<a class="pcard rv" data-d="${i * 70}" href="article.html?p=${p.key}"><div class="ph"><img loading="lazy" src="${A.img(p.img)}" alt="${A.esc(p.alt)}"></div><div><span class="cat">${A.esc(p.cat)}</span><h3>${A.esc(p.title)}</h3><p>${A.esc(p.excerpt)}</p></div></a>`).join('')
-    + `<a class="link-arrow rv" href="blog.html" style="margin:10px 12px">Blog ${A.ic('arrow-right')}</a>`;
+  const fbw = Math.min(500, A.qs('#fb').clientWidth - 20 || 480), FB = S.fb[0];
+  A.qs('#latest-link').lastElementChild.previousSibling.nodeValue = FB.x + ' ';
+  A.qs('#fb').innerHTML = `<div class="fbhead">${A.ic('facebook')}<b>${A.esc(FB.x)}</b></div><iframe loading="lazy" title="${A.esc(FB.x)} · Facebook" height="620" src="https://www.facebook.com/plugins/page.php?href=${encodeURIComponent(FB.h)}&tabs=timeline&width=${fbw}&height=620&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false" allow="encrypted-media"></iframe>`;
+  A.qs('#posts').innerHTML = H.posts.map((p, i) => `<a class="pcard rv" data-d="${i * 70}" href="article.html?p=${encodeURIComponent(p.key)}"><div class="ph"><img loading="lazy" src="${A.img(p.img)}" alt="${A.esc(p.alt)}"></div><div><span class="cat">${A.esc(p.cat)}</span><h3>${A.esc(p.title)}</h3><p>${A.esc(p.excerpt)}</p></div></a>`).join('')
+    + `<a class="link-arrow rv" href="blog.html" style="margin:10px 12px">${A.esc(A.t('Blog'))} ${A.ic('arrow-right')}</a>`;
 
   /* ---------- 13. partners ---------- */
   A.qs('#partners-h').textContent = H.partnersH;
   A.qs('#partners').innerHTML = H.partners.concat(H.partners).map(p => `<img loading="lazy" src="${A.img(p.img)}" alt="${A.esc(p.alt)}">`).join('');
-  A.logoLens(A.qs('#partners').parentElement);
 
   /* ---------- 14. consultation ---------- */
   const soc = S.socials;
   A.qs('#consult').innerHTML = `<div style="position:relative"><h2 class="h-xl">${A.esc(H.consH)}</h2><p class="lead" style="color:var(--lilac-200);margin-top:22px">${A.esc(H.consP)}</p>
       <div class="socgrid">${soc.map(s => `<a href="${s.h}" target="_blank" rel="noopener">${A.socIcon(s.k)}${A.esc(s.x)}</a>`).join('')}</div></div>
-    <div class="ch-list">
-      <a class="ch" href="${S.phones[0].h}"><span class="ic">${A.ic('phone')}</span><span><b>${S.phones[0].x}</b></span></a>
-      <a class="ch" href="https://lin.ee/XfA7ouT" target="_blank" rel="noopener"><span class="ic">${A.ic('line')}</span><span><b>@APEX International</b></span></a>
-      <a class="ch" href="${S.consult.h}" target="_blank" rel="noopener"><span class="ic">${A.ic('whatsapp')}</span><span><b>${S.consult.x}</b><small>+66 85 000 2001</small></span></a>
-      <a class="ch" href="branches.html"><span class="ic">${A.ic('map-pin')}</span><span><b>Our Branches</b></span></a>
+    <div class="ch-list">${(H.channels || S.channels).map(c => `<a class="ch" href="${c.h}"${/^https?:/.test(c.h) ? ' target="_blank" rel="noopener"' : ''}><span class="ic">${A.ic(c.ic)}</span><span><b>${A.esc(c.x)}</b>${c.sub ? `<small>${A.esc(c.sub)}</small>` : ''}</span></a>`).join('')}
     </div>`;
 });

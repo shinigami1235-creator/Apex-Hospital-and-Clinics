@@ -1,14 +1,14 @@
 /* Branches: map + list, filter by group, search */
 APEX.boot(() => {
   const A = APEX, B = A.branches, L = window.L;
-  const groups = {hospital:'Apex Surgery Hospital', bangkok:B.page.groups.bangkok, province:B.page.groups.province};
+  const groups = Object.fromEntries(B.page.groups.map(g => [g.k, g.x]));
   A.qs('#main').innerHTML = `<section class="phead"><div class="wrap" style="display:flex;justify-content:space-between;align-items:end;gap:30px;flex-wrap:wrap">
       <div>${A.crumbs([['Home','index.html'],['Our Branches']])}<h1 class="h-xl rv">${A.esc(B.page.h1)}</h1></div>
       <div class="bcount rv"><b id="count">${B.list.length}</b></div></div></section>
     <section class="section" style="padding-top:40px"><div class="wrap">
       <div class="btools"><button class="chip" aria-pressed="true" data-g="">${A.ic('map')} ${B.list.length}</button>${Object.entries(groups).map(([k, x]) => `<button class="chip" aria-pressed="false" data-g="${k}">${A.esc(x)}</button>`).join('')}
-        <label class="bsearch">${A.ic('search')}<input id="q" type="search" autocomplete="off" aria-label="Search"></label>
-        <button class="chip" id="near" aria-label="Near me">${A.ic('navigation')}</button></div>
+        <label class="bsearch">${A.ic('search')}<input id="q" type="search" autocomplete="off" aria-label="${A.esc(A.t('Search'))}"></label>
+        <button class="chip" id="near" aria-label="${A.esc(A.t('Near me'))}">${A.ic('navigation')}</button></div>
       <div class="bwrap"><div class="blist" id="blist"></div><div class="bmap" id="map"></div></div></div></section>`;
 
   const listEl = A.qs('#blist');
@@ -18,14 +18,14 @@ APEX.boot(() => {
   const icon = (h, on) => L.divIcon({className:'', html:`<div class="pin${h ? ' h' : ''}${on ? ' on' : ''}"></div>`, iconSize:[30, 30], iconAnchor:[15, 30], popupAnchor:[0, -28]});
   B.list.forEach((b, i) => {
     if (!b.ll) return;
-    const m = L.marker(b.ll, {icon:icon(b.group === 'hospital')}).addTo(map);
+    const m = L.marker(b.ll, {icon:icon(b.group === B.page.groups[0].k)}).addTo(map);
     m.bindPopup(`<b>${A.esc(b.name)}</b>${b.phones.map(p => `<a href="tel:${p.replace(/[^\d+]/g, '')}">${A.esc(p)}</a>`).join('<br>')}${b.map ? `<br><a href="${b.map}" target="_blank" rel="noopener">Google Map</a>` : ''}`);
     m.on('click', () => focus(i, false));
     markers[i] = m;
   });
   const card = (b, i) => `<article class="bcard" data-i="${i}" tabindex="0"><div class="ph"><img loading="lazy" src="${A.img(b.img)}" alt="${A.esc(b.alt)}"></div>
     <div><h3>${A.esc(b.name)}</h3><div class="acts">${b.phones.map(p => `<a href="tel:${p.replace(/[^\d+]/g, '')}">${A.ic('phone')}${A.esc(p)}</a>`).join('')}
-      ${b.map ? `<a href="${b.map}" target="_blank" rel="noopener">${A.ic('map-pin')}Google Map</a>` : ''}${b.how ? `<a href="${b.how}" target="_blank" rel="noopener">${A.ic('navigation')}How to get there</a>` : ''}</div></div></article>`;
+      ${b.map ? `<a href="${b.map}" target="_blank" rel="noopener">${A.ic('map-pin')}Google Map</a>` : ''}${b.how ? `<a href="${b.how}"${/^https?:/.test(b.how) ? ' target="_blank" rel="noopener"' : ''}>${A.ic('navigation')}${A.esc(B.page.how || A.t('How to get there'))}</a>` : ''}</div></div></article>`;
   function draw(){
     const ql = q.toLowerCase();
     const vis = B.list.map((b, i) => [b, i]).filter(([b]) => (!group || b.group === group) && (!ql || (b.name + ' ' + b.alt + ' ' + b.phones.join(' ')).toLowerCase().includes(ql)));
@@ -39,11 +39,11 @@ APEX.boot(() => {
   }
   let current = -1;
   function focus(i, fly){
-    if (current >= 0 && markers[current]) markers[current].setIcon(icon(B.list[current].group === 'hospital'));
+    if (current >= 0 && markers[current]) markers[current].setIcon(icon(B.list[current].group === B.page.groups[0].k));
     current = i;
     A.qsa('.bcard', listEl).forEach(c => c.classList.toggle('on', +c.dataset.i === i));
     const m = markers[i];
-    if (m) { m.setIcon(icon(B.list[i].group === 'hospital', true)); if (fly) map.flyTo(B.list[i].ll, 15, {duration:.9}); m.openPopup(); }
+    if (m) { m.setIcon(icon(B.list[i].group === B.page.groups[0].k, true)); if (fly) map.flyTo(B.list[i].ll, 15, {duration:.9}); m.openPopup(); }
     const c = A.qs(`.bcard[data-i="${i}"]`, listEl); if (c && !fly) c.scrollIntoView({block:'nearest', behavior:'smooth'});
   }
   listEl.addEventListener('click', e => { if (e.target.closest('a')) return; const c = e.target.closest('.bcard'); if (c) { focus(+c.dataset.i, true); if (innerWidth < 900) A.qs('#map').scrollIntoView({behavior:'smooth', block:'center'}); } });

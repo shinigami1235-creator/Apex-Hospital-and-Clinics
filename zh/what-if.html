@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>What if? — HArmonyCA 注射项目 | Apex Medical Center</title>
+<meta name="description" content="Botox is most commonly used to treat wrinkles and fine lines in the forehead, between the eyebrows, and around the eyes (crow’s feet).">
+<meta name="theme-color" content="#1F0A30">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/apex.css">
+</head>
+<body data-page="whatif">
+<main id="main">
+  <section class="phead">
+    <div class="wrap">
+      <div id="crumbs"></div>
+      <h1 class="display">What if?</h1>
+      <p class="lead" id="lead" style="max-width:62ch;margin-top:22px"></p>
+    </div>
+  </section>
+  <section class="section" style="padding-top:50px">
+    <div class="wrap wi">
+      <div>
+        <div class="wi-stage" id="stage">
+          <div class="wi-empty" id="empty"><div><div class="big" id="empty-ic"></div><div class="wi-src" style="max-width:360px;margin:0 auto" id="empty-src"></div></div></div>
+          <video id="video" playsinline muted hidden></video>
+          <div class="ba" id="ba" hidden><span class="tag l">Before</span><span class="tag r">After</span><div class="handle"></div><span class="knob" id="knob"></span></div>
+          <div class="wi-busy" id="busy"><div class="spin"></div></div>
+        </div>
+        <p class="note" style="margin-top:14px">Results may vary from person to person.</p>
+      </div>
+      <aside class="wi-panel" id="panel">
+        <div><h3>Botox</h3><div class="wi-src" id="src"></div></div>
+        <div><h3 id="areas-h">Treatment Areas</h3><div class="wi-areas" id="areas"></div></div>
+        <div><input type="range" class="rng" id="amt" min="0" max="100" value="80" aria-label="Results"></div>
+        <div id="links" class="wi-treat"></div>
+      </aside>
+    </div>
+  </section>
+</main>
+<input type="file" id="file" accept="image/*" hidden>
+<script src="../assets/js/icons.js"></script>
+<script src="../assets/data/zh/shared.js"></script>
+<script src="../assets/data/zh/services.js"></script>
+<script src="../assets/js/core.js"></script>
+<script src="../assets/js/whatif-core.js"></script>
+<script src="../assets/js/whatif.js"></script>
+</body>
+</html>

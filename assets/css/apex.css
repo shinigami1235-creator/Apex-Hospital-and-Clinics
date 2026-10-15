@@ -296,7 +296,8 @@ input,select,textarea{font:inherit;caret-color:var(--plum)}
 
 /* doctors marquee */
 .marquee{overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
-.marquee-track{display:flex;gap:18px;width:max-content;animation:mq var(--d,60s) linear infinite}
+.marquee-track{display:flex;gap:0;width:max-content;animation:mq var(--d,60s) linear infinite}
+.marquee-track>*{margin-right:var(--g,18px)}
 .marquee:hover .marquee-track{animation-play-state:paused}
 .marquee.rev .marquee-track{animation-direction:reverse}
 @keyframes mq{to{transform:translateX(-50%)}}
@@ -337,7 +338,8 @@ input,select,textarea{font:inherit;caret-color:var(--plum)}
 .gmark{display:inline-flex;align-items:center;gap:8px;color:var(--on-night-2);font-size:15px}
 .gmark .i{width:20px;height:20px}
 .vmarquee{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;height:680px;overflow:hidden;mask-image:linear-gradient(180deg,transparent,#000 10%,#000 90%,transparent)}
-.vmarquee-track{display:flex;flex-direction:column;gap:18px;animation:vmq var(--d,70s) linear infinite}
+.vmarquee-track{display:flex;flex-direction:column;gap:0;animation:vmq var(--d,70s) linear infinite}
+.vmarquee-track>*{margin-bottom:18px}
 .vmarquee-col:hover .vmarquee-track{animation-play-state:paused}
 .vmarquee-col:nth-child(2) .vmarquee-track{animation-direction:reverse}
 @keyframes vmq{to{transform:translateY(-50%)}}
@@ -376,7 +378,7 @@ input,select,textarea{font:inherit;caret-color:var(--plum)}
 .cat{display:inline-flex;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--plum);margin-bottom:6px}
 
 /* partners */
-.logos .marquee-track{gap:70px;align-items:center}
+
 .logos img{height:46px;width:auto;max-width:150px;object-fit:contain;filter:grayscale(1) contrast(.9);opacity:.7;transition:filter .3s,opacity .3s}
 .logos img:hover{filter:none;opacity:1}
 
@@ -769,8 +771,10 @@ html,body{overflow-x:clip}main>section{overflow-x:clip}
 
 /* partners: full colour, they grow as they pass the middle */
 .logos{padding:26px 0}
-.logos .marquee-track{gap:84px}
-.logos img{filter:none;opacity:.6;transform-origin:center;will-change:transform;transition:none}
+
+.logos .marquee-track{align-items:center;--g:96px}
+.logos img{filter:none;opacity:.85;transform-origin:center;transition:transform .45s var(--ease-out),opacity .3s}
+.logos img:hover{transform:scale(1.65);opacity:1}
 .logos img:hover{filter:none}
 
 /* mobile hero */
@@ -806,4 +810,20 @@ html,body{overflow-x:clip}main>section{overflow-x:clip}
 @media (max-width:900px){.bezel{padding:8px;border-radius:22px}.bezel .portal{border-radius:15px}.bezel::after{border-radius:18px}.plate{display:none}.refl{display:none}}
 .logos{padding:56px 0}
 .logos img{height:54px;max-width:170px}
-.logos .marquee-track{gap:130px}
+
+
+/* ===== languages ===== */
+html[lang="zh"]{--font:"LINE Seed","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif}
+/* Thai tone marks sit above the line: give tight headings room */
+html[lang="th"] h1,html[lang="th"] h2,html[lang="th"] .h-xl,html[lang="th"] .h-l,html[lang="th"] .display,html[lang="th"] .dname{line-height:1.22;letter-spacing:-.015em}
+html[lang="th"] .hero h1{line-height:1.12}
+html[lang="th"] .hero h1 .ln{padding-top:.12em}
+html[lang="zh"] h1,html[lang="zh"] h2,html[lang="zh"] .h-xl,html[lang="zh"] .h-l,html[lang="zh"] .display{line-height:1.2;letter-spacing:0}
+/* big menus (Thai has 14 service groups): flowing columns that scroll inside the panel */
+.mega.wide{display:block;columns:5 190px;column-gap:28px;max-height:calc(100vh - 110px);overflow-y:auto;overscroll-behavior:contain}
+.mega.wide>div{break-inside:avoid;margin-bottom:20px}
+.mega.wide .mega-foot{column-span:all;margin-top:8px}
+.mega a.sub{padding-left:12px;font-size:13.5px;color:var(--ink-3);border-left:1px solid var(--lilac-200)}
+.svc-card.sub .tx b{font-weight:400}
+.score b.word{font-size:clamp(38px,4.4vw,62px);letter-spacing:-.02em;line-height:1.1}
+.ftr-note{font-size:12.5px;line-height:1.6;color:var(--on-night-2);opacity:.75;margin:0 0 16px}

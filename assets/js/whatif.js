@@ -1,22 +1,19 @@
 /* What-if page: upload or take a photo, pick areas, compare before / after */
 APEX.boot(() => {
   const A = APEX, W = window.WhatIf;
-  const botox = A.services['service/botox'];
-  const areasP = botox.blocks.find(b => b.t === 'p' && b.x.startsWith('Treatment Areas'));
-  A.qs('#lead').textContent = areasP ? areasP.x : '';
-  A.qs('#crumbs').innerHTML = A.crumbs([['Home', 'index.html'], ['Botox', 'service.html?p=service/botox'], ['What if?']]);
+  const WI = A.shared.whatif;
+  A.qs('#lead').textContent = WI.lead;
+  A.qs('#crumbs').innerHTML = A.crumbs([['Home', 'index.html'], [WI.link.x, WI.link.h], ['What if?']]);
   A.qs('#knob').innerHTML = A.ic('move-horizontal');
   A.qs('#empty-ic').innerHTML = A.ic('scan-face');
 
-  const srcBtns = `<button class="btn btn-plum btn-sm" data-src="upload">${A.ic('upload')}Upload</button><button class="btn btn-ghost on-light btn-sm" data-src="camera">${A.ic('camera')}Camera</button>`;
-  A.qs('#src').innerHTML = srcBtns + `<button class="btn btn-ghost on-light btn-sm" data-src="sample" style="grid-column:1/-1">${A.ic('image')}Before - After</button>`;
+  const srcBtns = `<button class="btn btn-plum btn-sm" data-src="upload">${A.ic('upload')}${A.esc(A.t('Upload'))}</button><button class="btn btn-ghost on-light btn-sm" data-src="camera">${A.ic('camera')}${A.esc(A.t('Camera'))}</button>`;
+  A.qs('#src').innerHTML = srcBtns + `<button class="btn btn-ghost on-light btn-sm" data-src="sample" style="grid-column:1/-1">${A.ic('image')}${A.esc(A.t('Before - After'))}</button>`;
   A.qs('#empty-src').innerHTML = srcBtns.replace('btn-ghost on-light', 'btn-light');
 
-  const ON = new Set(['forehead', 'glabella', 'crowsfeet']);
-  A.qs('#areas').innerHTML = Object.entries(W.AREAS).map(([k, a]) => `<button class="wi-area" data-k="${k}" aria-pressed="${ON.has(k)}"><span>${a.x}<small>${a.treat}</small></span><span class="tg"></span></button>`).join('');
-  const links = [['service/botox'], ['service/line-wrinkle'], ['harmonyca'], ['filler-injection']];
-  const label = {}; A.shared.centers.forEach(c => c.items.forEach(it => { if (it.key) label[it.key] = it.label; }));
-  A.qs('#links').innerHTML = links.map(([k]) => `<a class="chip" href="service.html?p=${k}">${A.esc(label[k] || A.services[k].title)} ${A.ic('arrow-up-right')}</a>`).join('');
+  const ON = new Set(WI.on);
+  A.qs('#areas').innerHTML = Object.keys(W.AREAS).map(k => `<button class="wi-area" data-k="${k}" aria-pressed="${ON.has(k)}"><span>${A.esc(WI.areas[k])}<small>${A.esc(WI.treat[k === 'nasolabial' ? 'filler' : 'botox'])}</small></span><span class="tg"></span></button>`).join('');
+  A.qs('#links').innerHTML = WI.links.map(l => `<a class="chip" href="${l.h}">${A.esc(l.x)} ${A.ic('arrow-up-right')}</a>`).join('');
 
   const stage = A.qs('#stage'), ba = A.qs('#ba'), busy = A.qs('#busy'), empty = A.qs('#empty'), video = A.qs('#video'), file = A.qs('#file'), amt = A.qs('#amt');
   W.slider(ba);
