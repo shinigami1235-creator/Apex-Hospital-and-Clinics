@@ -156,7 +156,7 @@ function init(host){
 
   // ---- loop ----
   let w = 0, h = 0, visible = false, raf, t0 = performance.now(), introT = 0, tourAt = 0;
-  const resize = () => { w = stage.clientWidth; h = stage.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.fov = w < 560 ? 38 : 30; camera.updateProjectionMatrix(); };
+  const resize = () => { w = stage.clientWidth; h = stage.clientHeight; stage.classList.toggle('compact', h < 600 || w < 600); renderer.setSize(w, h, false); camera.aspect = w / h; camera.fov = w < 560 ? 38 : 30; camera.updateProjectionMatrix(); };
   new ResizeObserver(resize).observe(stage); resize();
   const tmp = new THREE.Vector3();
   function frame(now){
