@@ -75,7 +75,7 @@
   function doctors(){
     const D = A.doctors.list;
     main().innerHTML = head([['Home','index.html'],['Doctor teams']], A.doctors.page.h1) + `
-      <section class="section" style="padding-top:50px"><div class="wrap dpanel">
+      <section class="section" style="padding-top:50px"><div class="wrap dpanel" id="dpanel">
         <div class="droster"><label class="dsearch">${A.ic('search')}<input id="q" type="search" autocomplete="off" aria-label="Search"></label><div class="dlist" id="dlist" role="listbox" aria-label="Doctor teams"></div></div>
         <div class="dview" id="dview" aria-live="polite"></div></div></section>`;
     const list = A.qs('#dlist'), view = A.qs('#dview');
@@ -85,10 +85,12 @@
       A.qsa('button', list).forEach(b => b.setAttribute('aria-selected', b.dataset.s === d.slug));
       const btn = A.qs(`[data-s="${d.slug}"]`, list); if (btn && push) btn.scrollIntoView({block:'nearest', inline:'center', behavior:'smooth'});
       view.innerHTML = `<div class="dcard"><div class="dphoto"><img src="${A.img(d.img)}" alt="${A.esc(d.thai)}"><div class="lic"><span>${A.esc(d.licenseLine || d.license)}</span>${d.check ? `<a href="${d.check.h}" target="_blank" rel="noopener" title="${A.esc(d.check.x)}" aria-label="${A.esc(d.check.x)}" style="color:#fff">${A.ic('badge-check')}</a>` : ''}</div></div>
-        <div><h2 class="dname">${A.esc(d.h1 || d.name)}</h2><p class="dnick">${A.esc(d.nickParen || '(' + d.nick + ')')}</p><p class="dthai">${A.esc(d.thai)}</p>
-          ${d.check ? `<a class="btn btn-ghost on-light btn-sm" href="${d.check.h}" target="_blank" rel="noopener" style="color:var(--plum);margin-top:8px">${A.ic('badge-check')}${A.esc(d.check.x)}</a>` : ''}
-          ${d.sections.map(sec => sec.items.length ? `<div class="dsec"><h3>${A.esc(sec.h)}</h3><ul>${sec.items.flatMap(it => it.split(' • ')).map(it => `<li>${A.fmtLi(it)}</li>`).join('')}</ul></div>` : '').join('')}
+        <div class="dinfo"><div class="dhead"><h2 class="dname">${A.esc(d.h1 || d.name)}</h2><p class="dnick">${A.esc(d.nickParen || '(' + d.nick + ')')}</p><p class="dthai">${A.esc(d.thai)}</p>
+          ${d.check ? `<a class="btn btn-ghost on-light btn-sm" href="${d.check.h}" target="_blank" rel="noopener" style="color:var(--plum);margin-top:8px">${A.ic('badge-check')}${A.esc(d.check.x)}</a>` : ''}</div>
+          <div class="dscroll" tabindex="0">${d.sections.map(sec => sec.items.length ? `<div class="dsec"><h3>${A.esc(sec.h)}</h3><ul>${sec.items.flatMap(it => it.split(' • ')).map(it => `<li>${A.fmtLi(it)}</li>`).join('')}</ul></div>` : '').join('')}</div>
         </div></div>`;
+      const sc = A.qs('.dscroll', view); const edge = () => { sc.classList.toggle('top', sc.scrollTop < 4); sc.classList.toggle('end', sc.scrollTop + sc.clientHeight > sc.scrollHeight - 4); };
+      sc.addEventListener('scroll', edge, {passive:true}); edge();
       if (push) history.replaceState(null, '', '#' + d.slug);
       if (push && innerWidth < 900) view.scrollIntoView({behavior:'smooth', block:'start'});
     }
@@ -103,7 +105,16 @@
       const q = e.target.value.trim().toLowerCase();
       A.qsa('button', list).forEach(b => { const d = D.find(x => x.slug === b.dataset.s); b.hidden = q && !(d.name + ' ' + d.nick + ' ' + d.thai + ' ' + d.license).toLowerCase().includes(q); });
     });
+    // with the panel on screen, the wheel over the portrait scrolls the credentials instead of the page
+    const panel = A.qs('#dpanel');
+    view.addEventListener('wheel', e => {
+      const sc = A.qs('.dscroll', view); if (!sc || innerWidth < 900 || e.target.closest('.dscroll')) return;
+      const r = panel.getBoundingClientRect(); if (r.top < -2 || r.bottom > innerHeight + 2) return;
+      const can = e.deltaY > 0 ? sc.scrollTop + sc.clientHeight < sc.scrollHeight - 1 : sc.scrollTop > 0;
+      if (can) { e.preventDefault(); sc.scrollTop += e.deltaY; }
+    }, {passive:false});
     show(location.hash.slice(1), false);
+    if (location.hash && innerWidth >= 900) setTimeout(() => panel.scrollIntoView({block:'center'}), 120);
     addEventListener('hashchange', () => show(location.hash.slice(1), false));
   }
 
@@ -164,13 +175,29 @@
         <div><h2 class="h-xl rv">${A.esc(B.h2)}</h2><p class="h-m plum-t rv" style="margin:20px 0 30px">${A.esc(B.sub)}</p>${B.lead.map(p => `<p class="lead rv">${A.esc(p)}</p>`).join('')}</div>
         <div class="intro-photo rv"><img src="${A.img(B.photo.src)}" alt="${A.esc(B.photo.alt)}"></div></div></section>
       <section class="section washed"><div class="wrap founder">
-        <div><div class="ph rv-clip"><img src="${A.img(B.founderImg)}" alt="${A.esc(B.founderName)}"></div><div class="cap"><b class="h-s b">${A.esc(B.founderName)}</b><p class="muted">${A.esc(B.founderRole)}</p><a class="link-arrow" href="doctors.html#dr-nantapat-supapannachart">Doctor teams ${A.ic('arrow-right')}</a></div></div>
-        <div class="bio">${B.bio.map(p => `<p class="rv">${yr(p)}</p>`).join('')}</div></div></section>
+        <aside class="f-side"><div class="f-media"><div class="ph rv-clip"><img src="${A.img(B.founderImg)}" alt="${A.esc(B.founderName)}"></div>
+            <nav class="f-rail" id="frail">${B.bio.map((p, i) => { const y = (p.match(/\b(19\d\d|20\d\d)\b/) || [])[1]; return `<button type="button" data-i="${i}" aria-label="${y || i + 1}"${y ? ' class="y"' : ''}>${y || String(i + 1).padStart(2, '0')}</button>`; }).join('')}</nav></div>
+          <div class="cap"><b class="h-s b">${A.esc(B.founderName)}</b><p class="muted">${A.esc(B.founderRole)}</p><a class="link-arrow" href="doctors.html#dr-nantapat-supapannachart">Doctor teams ${A.ic('arrow-right')}</a></div></aside>
+        <div class="bio" id="bio">${B.bio.map((p, i) => `<p data-i="${i}"${i && p.length < 170 ? ' class="big"' : ''}>${yr(p)}</p>`).join('')}</div></div></section>
       <section class="section plum"><div class="wrap why">
         <div class="why-sticky"><h2 class="h-xl rv">${A.esc(B.whyH)}</h2><p class="lead rv" style="margin-top:24px;color:var(--lilac-200)">${A.esc(B.whyIntro)}</p></div>
         <div>${B.why.map((w, i) => `<div class="why-row rv"><span class="why-ico" style="background:rgba(255,255,255,.12);color:#fff">${A.ic(['shield-check','stethoscope','layers'][i])}</span><div><h3>${A.esc(w.h)}</h3><p style="color:var(--lilac-200)">${A.esc(w.p)}</p></div></div>`).join('')}</div></div></section>
       <section class="section" style="padding-bottom:60px"><div class="wrap"><h2 class="h-m muted rv" style="text-align:center;margin-bottom:34px">${A.esc(H.partnersH)}</h2></div>
-        <div class="marquee logos" style="--d:70s"><div class="marquee-track">${H.partners.concat(H.partners).map(p => `<img loading="lazy" src="${A.img(p.img)}" alt="${A.esc(p.alt)}">`).join('')}</div></div></section>`;
+        <div class="marquee logos" id="logos" style="--d:70s"><div class="marquee-track">${H.partners.concat(H.partners).map(p => `<img loading="lazy" src="${A.img(p.img)}" alt="${A.esc(p.alt)}">`).join('')}</div></div></section>`;
+    A.logoLens(A.qs('#logos'));
+    // reading focus: the paragraph at eye level stays bright, the rail follows it
+    const bio = A.qs('#bio'), ps = A.qsa('p', bio), rail = A.qs('#frail'), rb = A.qsa('button', rail);
+    let at = -1;
+    const read = () => {
+      const line = innerHeight * .42; let k = 0;
+      ps.forEach((p, i) => { if (p.getBoundingClientRect().top < line) k = i; });
+      const r = bio.getBoundingClientRect();
+      rail.style.setProperty('--p', Math.max(0, Math.min(1, (line - r.top) / r.height)).toFixed(3));
+      if (k === at) return; at = k;
+      ps.forEach((p, i) => p.classList.toggle('on', i === k)); rb.forEach((b, i) => b.classList.toggle('on', i === k));
+    };
+    bio.classList.add('reading'); addEventListener('scroll', read, {passive:true}); read();
+    rail.addEventListener('click', e => { const b = e.target.closest('button'); if (b) ps[+b.dataset.i].scrollIntoView({behavior:'smooth', block:'center'}); });
   }
 
   /* ---------------- contact ---------------- */

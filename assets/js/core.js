@@ -228,6 +228,20 @@
     next && next.addEventListener('click', () => rail.scrollBy({left:by(), behavior:'smooth'}));
   };
 
+  /* partner logos grow as they pass the middle of the strip */
+  A.logoLens = wrap => {
+    if (!wrap) return;
+    const imgs = A.qsa('img', wrap);
+    let raf = 0;
+    const frame = () => {
+      const r = wrap.getBoundingClientRect(), cx = r.left + r.width / 2, R = Math.max(240, r.width * .3);
+      const ks = imgs.map(im => { const b = im.getBoundingClientRect(); const d = Math.min(1, Math.abs(b.left + b.width / 2 - cx) / R); return 1 - d * d * (3 - 2 * d); });
+      imgs.forEach((im, i) => { const k = ks[i]; im.style.transform = `scale(${(.75 + k * 1.3).toFixed(3)})`; im.style.opacity = (.5 + k * .5).toFixed(3); });
+      raf = requestAnimationFrame(frame);
+    };
+    new IntersectionObserver(([e]) => { cancelAnimationFrame(raf); if (e.isIntersecting) raf = requestAnimationFrame(frame); }).observe(wrap);
+  };
+
   A.boot = (fn) => {
     const go = () => { header(); fn && fn(); footer(); fab(); A.reveal(); document.dispatchEvent(new Event('apex:ready')); };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();

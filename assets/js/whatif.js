@@ -20,27 +20,9 @@ APEX.boot(() => {
 
   const stage = A.qs('#stage'), ba = A.qs('#ba'), busy = A.qs('#busy'), empty = A.qs('#empty'), video = A.qs('#video'), file = A.qs('#file'), amt = A.qs('#amt');
   W.slider(ba);
-  let base = null, lm = null, mesh = null, stream = null;
+  let base = null, lm = null, stream = null;
 
-  // MediaPipe Face Mesh, loaded only when needed
-  const MP = 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/';
-  function loadMesh(){
-    if (mesh) return mesh;
-    mesh = new Promise((res, rej) => {
-      const s = document.createElement('script'); s.src = MP + 'face_mesh.js'; s.crossOrigin = 'anonymous';
-      s.onload = () => {
-        const fm = new window.FaceMesh({locateFile: f => MP + f});
-        fm.setOptions({maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:.5, staticImageMode:true});
-        res(fm);
-      };
-      s.onerror = rej; document.head.append(s);
-    });
-    return mesh;
-  }
-  async function detect(canvas){
-    const fm = await loadMesh();
-    return new Promise(res => { fm.onResults(r => res(r.multiFaceLandmarks && r.multiFaceLandmarks[0])); fm.send({image:canvas}); });
-  }
+  const loadMesh = W.loadMesh, detect = W.detect;
 
   async function useCanvas(c){
     stopCam();
@@ -105,4 +87,6 @@ APEX.boot(() => {
   amt.addEventListener('input', () => { paint(); render(); }); paint();
   // preload the model in the background once the page is idle
   setTimeout(() => loadMesh().catch(() => {}), 1500);
+  // arriving from the home page's Camera button
+  if (location.hash === '#camera') startCam();
 });

@@ -124,26 +124,87 @@
     const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(im, 0, 0, w, h); return c;
   }
 
-  window.WhatIf = {SAMPLE, AREAS, simulate, slider, loadImage, toCanvas, areaShapes};
+  // MediaPipe Face Mesh, loaded only when someone brings their own photo
+  const MP = 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/';
+  let mesh = null;
+  function loadMesh(){
+    if (mesh) return mesh;
+    mesh = new Promise((res, rej) => {
+      const s = document.createElement('script'); s.src = MP + 'face_mesh.js'; s.crossOrigin = 'anonymous';
+      s.onload = () => {
+        const fm = new window.FaceMesh({locateFile: f => MP + f});
+        fm.setOptions({maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:.5, staticImageMode:true});
+        res(fm);
+      };
+      s.onerror = e => { mesh = null; rej(e); }; document.head.append(s);
+    });
+    return mesh;
+  }
+  async function detect(canvas){
+    const fm = await loadMesh();
+    return new Promise(res => { fm.onResults(r => res(r.multiFaceLandmarks && r.multiFaceLandmarks[0])); fm.send({image:canvas}); });
+  }
+  const cloneCanvas = c => { const b = document.createElement('canvas'); b.width = c.width; b.height = c.height; b.getContext('2d').drawImage(c, 0, 0); return b; };
 
-  /* home teaser: runs the real filter on the sample photo with stored landmarks */
-  window.WhatIfTeaser = async function(el){
-    if (!el) return;
+  window.WhatIf = {SAMPLE, AREAS, simulate, slider, loadImage, toCanvas, areaShapes, loadMesh, detect};
+
+  /* home teaser: the real filter on the sample photo (stored landmarks), then on the visitor's own photo */
+  window.WhatIfTeaser = function(el){
+    if (!el) return null;
     const A = window.APEX;
-    el.innerHTML = `<span class="tag l">Before</span><span class="tag r">After</span><div class="handle"></div><span class="knob">${A.ic('move-horizontal')}</span>`;
+    el.innerHTML = `<span class="tag l">Before</span><span class="tag r">After</span><div class="handle"></div><span class="knob">${A.ic('move-horizontal')}</span><span class="hint" aria-hidden="true">${A.ic('pointer')}</span><span class="scan" aria-hidden="true"></span>`;
     slider(el);
-    const run = async () => {
+    let base = null, lm = null, areas = ['forehead', 'glabella', 'crowsfeet'], touched = false, sweepT = 0, seen = false;
+    function draw(){
+      if (!base || !lm) return;
+      el.querySelectorAll('canvas').forEach(c => c.remove());
+      const b = cloneCanvas(base), a = simulate(base, lm, areas, .95);
+      b.className = 'before'; a.className = 'after';
+      el.prepend(b); b.after(a);
+    }
+    // a hand drags the handle every few seconds until the visitor does it themselves
+    function sweep(){
+      if (touched || A.reduced || !seen) return;
+      el.classList.add('demo');
+      const t0 = performance.now(), D = 3200;
+      const f = now => {
+        if (touched) { el.classList.remove('demo'); return; }
+        const t = Math.min(1, (now - t0) / D);
+        el.style.setProperty('--x', (50 + Math.sin(t * Math.PI * 2) * 28 * Math.sin(t * Math.PI)) + '%');
+        if (t < 1) requestAnimationFrame(f);
+        else { el.style.setProperty('--x', '50%'); el.classList.remove('demo'); sweepT = setTimeout(sweep, 3000); }
+      };
+      setTimeout(() => requestAnimationFrame(f), 350);
+    }
+    const stop = () => { if (touched) return; touched = true; clearTimeout(sweepT); clearTimeout(sweepT); el.classList.remove('demo'); el.classList.add('touched'); };
+    el.addEventListener('pointerdown', stop);
+    el.addEventListener('keydown', stop);
+    async function sample(){
       try {
         if (!window.SAMPLE_LM) await new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'assets/data/sample-landmarks.js'; s.onload = res; s.onerror = rej; document.head.append(s); });
-        const im = await loadImage(SAMPLE);
-        const before = toCanvas(im, 900);
-        const after = simulate(before, window.SAMPLE_LM, ['forehead','glabella','crowsfeet'], .95);
-        before.className = 'before'; after.className = 'after';
-        el.prepend(before); before.after(after);
-        // gentle automatic sweep the first time it is seen
-        if (!A.reduced) { let t = 0; const sw = () => { t += .012; el.style.setProperty('--x', (50 + Math.sin(t * Math.PI) * 30) + '%'); if (t < 2) requestAnimationFrame(sw); else el.style.setProperty('--x', '50%'); }; sw(); }
+        base = toCanvas(await loadImage(SAMPLE), 900); lm = window.SAMPLE_LM; draw();
+        sweep();
       } catch (e) { el.style.display = 'none'; }
-    };
-    new IntersectionObserver(([e], o) => { if (e.isIntersecting) { o.disconnect(); run(); } }, {rootMargin:'300px'}).observe(el);
+    }
+    new IntersectionObserver(([e], o) => { if (e.isIntersecting) { o.disconnect(); seen = true; sample(); } }, {rootMargin:'200px'}).observe(el);
+    async function useFile(f){
+      if (!f || !/^image\//.test(f.type)) return;
+      stop();
+      el.classList.add('busy');
+      const url = URL.createObjectURL(f);
+      try {
+        const c = toCanvas(await loadImage(url), 900);
+        const found = await detect(c);
+        if (found) { base = c; lm = found; draw(); el.style.setProperty('--x', '50%'); }
+        else { el.classList.remove('nope'); void el.offsetWidth; el.classList.add('nope'); }
+      } catch (e) { el.classList.add('nope'); }
+      URL.revokeObjectURL(url);
+      el.classList.remove('busy');
+    }
+    // drop a photo straight onto the slider
+    el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('drop'); });
+    el.addEventListener('dragleave', () => el.classList.remove('drop'));
+    el.addEventListener('drop', e => { e.preventDefault(); el.classList.remove('drop'); useFile(e.dataTransfer.files[0]); });
+    return {useFile, setAreas(a){ areas = a; draw(); }, preload(){ loadMesh().catch(() => {}); }};
   };
 })();

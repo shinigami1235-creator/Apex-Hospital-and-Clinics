@@ -9,7 +9,7 @@ APEX.boot(() => {
   A.qs('#hero-h1').innerHTML = [words.slice(0, mid).join(' '), words.slice(mid).join(' ')].map(l => `<span class="ln"><span>${A.esc(l)}</span></span>`).join('');
   A.qs('#hero-sub').textContent = H.sub;
   const films = M.videos.hero, durations = {tjU4p64JpS4:33, ExiKCoIAAkc:29, I3QJS204toI:32, 's-T6fBkR1zc':40, kg1Lz5oEKnI:30};
-  const portal = A.qs('#portal'), poster = A.qs('#poster'), cap = A.qs('#cap'), reel = A.qs('#reel');
+  const portal = A.qs('#portal'), poster = A.qs('#poster'), cap = A.qs('#cap'), reel = A.qs('#reel'), amb = A.qs('#amb'), count = A.qs('#count');
   poster.src = A.img(H.heroImgs[4] || H.heroImgs[0]);
   A.qs('#yt-ch').innerHTML = `${A.ic('youtube')}Apex Beauty Clinic`;
   A.qs('#yt-ch').href = M.videos.channel;
@@ -18,13 +18,16 @@ APEX.boot(() => {
   const sound = A.qs('#sound');
   const setSound = () => sound.innerHTML = muted ? A.ic('volume-x') : A.ic('volume-2');
   sound.setAttribute('aria-label', 'Sound'); setSound();
-  const fit = () => { if (!frame) return; const r = portal.getBoundingClientRect(); const w = Math.max(r.width, r.height * 16 / 9); frame.style.width = w + 'px'; frame.style.height = (w * 9 / 16) + 'px'; };
+  // the player is taller than the frame so YouTube letterboxes the film and its title bar sits in the hidden band
+  const fit = () => { if (!frame) return; const r = {width:portal.offsetWidth, height:portal.offsetHeight}; const w = Math.max(r.width, r.height * 16 / 9), h = w * 9 / 16, band = Math.max(70, h * .2); frame.style.width = w + 'px'; frame.style.height = (h + band * 2) + 'px'; };
   new ResizeObserver(fit).observe(portal);
   const cmd = (func) => frame && frame.contentWindow && frame.contentWindow.postMessage(JSON.stringify({event:'command', func, args:[]}), '*');
   function play(i){
     cur = (i + films.length) % films.length;
     const f = films[cur];
     const span = cap; span.classList.add('swap');
+    count.textContent = String(cur + 1).padStart(2, '0') + ' / ' + String(films.length).padStart(2, '0');
+    const refl = A.qs('#refl'); [amb, refl].forEach(im => im.classList.add('swap')); setTimeout(() => { [amb, refl].forEach(im => { im.onload = () => im.classList.remove('swap'); im.src = A.yt(f.id); }); }, 300);
     setTimeout(() => { span.textContent = f.t; span.classList.remove('swap'); }, 260);
     if (!frame) {
       frame = document.createElement('iframe');
@@ -55,6 +58,13 @@ APEX.boot(() => {
     else { cmd('pauseVideo'); cancelAnimationFrame(raf); }
   }, {threshold:.15}).observe(hero);
   requestAnimationFrame(() => setTimeout(() => hero.classList.add('ready'), 60));
+  // the screen leans a little toward the pointer
+  if (!A.reduced && matchMedia('(pointer:fine)').matches) {
+    const tilt = A.qs('#tilt'); let tx = 0, ty = 0, rx = 0, ry = 0, tr = 0;
+    const step = () => { rx += (tx - rx) * .08; ry += (ty - ry) * .08; tilt.style.transform = `perspective(1600px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`; tilt.style.setProperty('--gx', (50 + ry * 9).toFixed(1) + '%'); tilt.style.setProperty('--gy', (50 - rx * 12).toFixed(1) + '%'); tr = Math.abs(tx - rx) + Math.abs(ty - ry) > .01 ? requestAnimationFrame(step) : 0; };
+    hero.addEventListener('pointermove', e => { const r = hero.getBoundingClientRect(); ty = ((e.clientX - r.left) / r.width - .5) * 7; tx = -((e.clientY - r.top) / r.height - .5) * 5; if (!tr) tr = requestAnimationFrame(step); });
+    hero.addEventListener('pointerleave', () => { tx = ty = 0; if (!tr) tr = requestAnimationFrame(step); });
+  }
 
   /* ---------- 2. intro: words light up as you read ---------- */
   const intro = A.qs('#intro');
@@ -80,8 +90,13 @@ APEX.boot(() => {
   const botox = A.services['service/botox'];
   const areasP = botox.blocks.find(b => b.t === 'p' && b.x.startsWith('Treatment Areas'));
   A.qs('#wi-lead').textContent = areasP ? areasP.x : '';
-  A.qs('#wi-areas').innerHTML = ['Forehead', 'Between the eyebrows', 'Crow’s feet'].map(x => `<span class="chip">${x}</span>`).join('');
-  window.WhatIfTeaser && window.WhatIfTeaser(A.qs('#wi-ba'));
+  const W = window.WhatIf, teaser = window.WhatIfTeaser && window.WhatIfTeaser(A.qs('#wi-ba'));
+  const wiAreas = A.qs('#wi-areas');
+  wiAreas.innerHTML = ['forehead', 'glabella', 'crowsfeet'].map(k => `<button class="chip" type="button" aria-pressed="true" data-k="${k}">${W.AREAS[k].x}</button>`).join('');
+  wiAreas.addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b || !teaser) return; b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'); teaser.setAreas(A.qsa('.chip[aria-pressed=true]', wiAreas).map(x => x.dataset.k)); });
+  const wiFile = A.qs('#wi-file');
+  ['#wi-up', '#wi-up2'].forEach(id => { const b = A.qs(id); b.addEventListener('click', () => wiFile.click()); b.addEventListener('pointerenter', () => teaser && teaser.preload(), {once:true}); });
+  wiFile.addEventListener('change', () => { if (teaser) teaser.useFile(wiFile.files[0]); wiFile.value = ''; if (innerWidth < 900) A.qs('#wi-ba').scrollIntoView({behavior:'smooth', block:'center'}); });
 
   /* ---------- 6. promo deck ---------- */
   A.qs('#promo-h').textContent = H.promoH;
@@ -160,6 +175,7 @@ APEX.boot(() => {
   /* ---------- 13. partners ---------- */
   A.qs('#partners-h').textContent = H.partnersH;
   A.qs('#partners').innerHTML = H.partners.concat(H.partners).map(p => `<img loading="lazy" src="${A.img(p.img)}" alt="${A.esc(p.alt)}">`).join('');
+  A.logoLens(A.qs('#partners').parentElement);
 
   /* ---------- 14. consultation ---------- */
   const soc = S.socials;

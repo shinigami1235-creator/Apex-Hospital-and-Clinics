@@ -18,15 +18,30 @@
     <div class="hero-glow" aria-hidden="true"></div>
     <svg class="hero-lines" aria-hidden="true" viewBox="0 0 1440 900" preserveAspectRatio="none"><g fill="none" stroke="rgba(201,179,221,.18)" stroke-width="1"><path d="M-40 820 C 300 640, 520 300, 720 120 S 1160 -40, 1500 60"/><path d="M-40 880 C 340 700, 600 360, 790 190 S 1200 40, 1500 140"/></g></svg>
     <div class="wrap hero-grid">
-      <div>
+      <div class="hero-copy">
         <h1 id="hero-h1"></h1>
         <p class="hero-sub" id="hero-sub"></p>
         <p class="hero-cap" aria-live="polite"><span id="cap"></span></p>
-        <div class="reel" id="reel" role="tablist"></div>
-        <div class="reel-meta"><a id="yt-ch" class="ytlink" target="_blank" rel="noopener"></a><button class="sound" id="sound" type="button"></button></div>
       </div>
-      <div class="portal" id="portal">
-        <img class="poster" id="poster" alt="" src="https://www.apexmedicalcenter.co.th/wp-content/uploads/2025/02/apex-hospital-beauty-clinic.webp">
+      <div class="screen" id="screen">
+        <span class="screen-arch" aria-hidden="true"></span>
+        <img class="amb" id="amb" alt="" aria-hidden="true">
+        <div class="screen-tilt" id="tilt">
+          <span class="plate p2" aria-hidden="true"></span>
+          <span class="plate p1" aria-hidden="true"></span>
+          <div class="bezel">
+            <div class="portal" id="portal">
+              <img class="poster" id="poster" alt="" src="https://www.apexmedicalcenter.co.th/wp-content/uploads/2025/02/apex-hospital-beauty-clinic.webp">
+            </div>
+            <span class="glare" aria-hidden="true"></span>
+          </div>
+          <img class="refl" id="refl" alt="" aria-hidden="true">
+        </div>
+        <div class="screen-bar">
+          <span class="count" id="count"></span>
+          <div class="reel" id="reel" role="tablist"></div>
+          <div class="reel-meta"><a id="yt-ch" class="ytlink" target="_blank" rel="noopener"></a><button class="sound" id="sound" type="button"></button></div>
+        </div>
       </div>
     </div>
     <span class="scroll-cue" aria-hidden="true"></span>
@@ -62,12 +77,20 @@
   <!-- 5. What if -->
   <section class="section night" id="whatif">
     <div class="wrap wi-teaser">
-      <div class="ba rv-clip" id="wi-ba" style="--x:52%"></div>
+      <div class="ba-ring rv-clip">
+        <div class="ba" id="wi-ba" style="--x:52%"></div>
+        <button class="ba-up" id="wi-up" type="button"><span data-ic="upload"></span>Upload</button>
+      </div>
       <div>
         <h2 class="display rv">What if?</h2>
         <p class="lead rv" id="wi-lead"></p>
         <div class="wi-treat rv" id="wi-areas" style="margin:22px 0 30px"></div>
-        <a class="btn btn-light rv" href="what-if.html"><span data-ic="scan-face"></span>Botox</a>
+        <div class="wi-acts rv">
+          <button class="btn btn-light" id="wi-up2" type="button"><span data-ic="upload"></span>Upload</button>
+          <a class="btn btn-ghost" href="what-if.html#camera"><span data-ic="camera"></span>Camera</a>
+          <a class="link-arrow" href="service.html?p=service/botox">Botox <span data-ic="arrow-right"></span></a>
+        </div>
+        <input type="file" id="wi-file" accept="image/*" hidden>
       </div>
     </div>
   </section>
