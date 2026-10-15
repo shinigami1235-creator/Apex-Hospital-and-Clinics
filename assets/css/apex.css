@@ -820,9 +820,8 @@ html[lang="th"] .hero h1{line-height:1.12}
 html[lang="th"] .hero h1 .ln{padding-top:.12em}
 html[lang="zh"] h1,html[lang="zh"] h2,html[lang="zh"] .h-xl,html[lang="zh"] .h-l,html[lang="zh"] .display{line-height:1.2;letter-spacing:0}
 /* big menus (Thai has 14 service groups): flowing columns that scroll inside the panel */
-.mega.wide{display:block;columns:5 190px;column-gap:28px;max-height:calc(100vh - 110px);overflow-y:auto;overscroll-behavior:contain}
-.mega.wide>div{break-inside:avoid;margin-bottom:20px}
-.mega.wide .mega-foot{column-span:all;margin-top:8px}
+.mega.wide{grid-template-columns:repeat(5,minmax(0,1fr));gap:28px;max-height:calc(100vh - 110px);overflow-y:auto;overscroll-behavior:contain;align-items:start}
+.mega .stack{display:grid;gap:22px}
 .mega a.sub{padding-left:12px;font-size:13.5px;color:var(--ink-3);border-left:1px solid var(--lilac-200)}
 .svc-card.sub .tx b{font-weight:400}
 .score b.word{font-size:clamp(38px,4.4vw,62px);letter-spacing:-.02em;line-height:1.1}

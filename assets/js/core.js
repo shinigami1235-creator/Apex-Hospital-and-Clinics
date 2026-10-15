@@ -53,7 +53,15 @@
     const nav = S.nav.map(n => {
       const cur = n.k === page ? ' aria-current="page"' : '';
       if (n.k === 'services') {
-        const cols = S.centers.map(c => `<div><h4>${A.esc(c.name)}</h4>${c.items.map(it => `<a href="${itHref(it)}"${it.d ? ' class="sub"' : ''}>${A.esc(it.label)}</a>`).join('')}</div>`).join('');
+        const block = c => `<div class="mc"><h4>${A.esc(c.name)}</h4>${c.items.map(it => `<a href="${itHref(it)}"${it.d ? ' class="sub"' : ''}>${A.esc(it.label)}</a>`).join('')}</div>`;
+        let cols;
+        if (S.centers.length > 6) {
+          // many groups: five stacks with about the same number of links each, in menu order
+          const total = S.centers.reduce((n, c) => n + c.items.length + 2, 0), per = total / 5, stacks = [[]];
+          let run = 0;
+          S.centers.forEach(c => { const w = c.items.length + 2; if (run + w / 2 > per * stacks.length && stacks.length < 5) stacks.push([]); stacks[stacks.length - 1].push(c); run += w; });
+          cols = stacks.map(st => `<div class="stack">${st.map(block).join('')}</div>`).join('');
+        } else cols = S.centers.map(block).join('');
         return `<div class="has-mega"><button type="button" aria-expanded="false"${cur}>${A.esc(n.x)}${A.ic('chevron-down')}</button><div class="mega${S.centers.length > 6 ? ' wide' : ''}" role="menu">${cols}<div class="mega-foot"><a class="link-arrow" href="services.html">${A.esc(A.t('All services'))} ${A.ic('arrow-right')}</a><a class="link-arrow" href="what-if.html">What if? ${A.ic('scan-face')}</a></div></div></div>`;
       }
       return `<a href="${n.h}"${cur}>${A.esc(n.x)}</a>`;
@@ -66,7 +74,7 @@
       <a class="hdr-logo" href="index.html" aria-label="Apex Medical Center"><img src="${A.img(S.logo)}" alt="APEX Hospital & Clinics by Apex Medical Center" width="160" height="34"></a>
       <nav class="hdr-nav" aria-label="Main">${nav}<a href="updates.html"${page==='updates'?' aria-current="page"':''}>${A.ic('sparkles')}</a></nav>
       <div class="hdr-right"><div class="lang">${langs}</div>
-        <a class="btn btn-plum btn-sm" href="${S.consult.h}" target="_blank" rel="noopener">${A.ic('whatsapp')}${S.consult.x}</a>
+        <a class="btn btn-plum btn-sm" href="${S.consult.h}" target="_blank" rel="noopener">${A.ic(S.consult.ic || 'whatsapp')}${A.esc(S.consult.x)}</a>
         <button class="burger" type="button" aria-label="${A.esc(A.t('Menu'))}">${A.ic('menu')}</button></div></div>`;
     document.body.prepend(el);
     // updates link: label with its own heading text for screen readers
@@ -95,7 +103,7 @@
     sh.innerHTML = `<div class="sheet-top"><img src="${A.img(S.logoWhite)}" alt="Apex"><button class="close" aria-label="${A.esc(A.t('Close'))}">${A.ic('close')}</button></div>
       <nav>${S.nav.map(n => n.k === 'services' ? `<details><summary>${A.esc(n.x)}${A.ic('chevron-down')}</summary><div class="sub"><a href="services.html">${A.esc(A.t('All services'))}</a>${subs}</div></details>` : `<a href="${n.h}">${A.esc(n.x)}${A.ic('arrow-up-right')}</a>`).join('')}
       <a href="updates.html">${A.esc(S.latestH)}${A.ic('arrow-up-right')}</a><a href="what-if.html">What if?${A.ic('scan-face')}</a></nav>
-      <div class="sheet-cta"><a class="btn btn-light" href="${S.consult.h}" target="_blank" rel="noopener">${A.ic('whatsapp')}${S.consult.x}</a>
+      <div class="sheet-cta"><a class="btn btn-light" href="${S.consult.h}" target="_blank" rel="noopener">${A.ic(S.consult.ic || 'whatsapp')}${A.esc(S.consult.x)}</a>
       <div class="lang" style="display:flex;justify-content:center;border-color:rgba(201,179,221,.3)">${langs}</div></div>`;
     document.body.append(sh);
     const toggle = v => { sh.classList.toggle('open', v); document.documentElement.style.overflow = v ? 'hidden' : ''; };
@@ -129,7 +137,7 @@
     const d = document.createElement('div');
     d.className = 'fab';
     d.innerHTML = `<div class="fab-list">
-      <a class="wa" href="${S.consult.h}" target="_blank" rel="noopener">${A.ic('whatsapp')}${S.consult.x}</a>
+      <a class="wa" href="${S.consult.h}" target="_blank" rel="noopener">${A.ic(S.consult.ic || 'whatsapp')}${A.esc(S.consult.x)}</a>
       <a class="ln" href="${S.line.h}" target="_blank" rel="noopener">${A.ic(S.line.ic || 'line')}${A.esc(S.line.x)}</a>
       <a class="ph" href="${S.phones[0].h}">${A.ic('phone')}${S.phones[0].x}</a></div>
       <button class="fab-btn" aria-label="${S.consult.x}" aria-expanded="false">${A.ic('message-circle')}</button>`;

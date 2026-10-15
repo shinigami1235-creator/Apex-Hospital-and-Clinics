@@ -181,7 +181,7 @@
     el.addEventListener('keydown', stop);
     async function sample(){
       try {
-        if (!window.SAMPLE_LM) await new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'assets/data/sample-landmarks.js'; s.onload = res; s.onerror = rej; document.head.append(s); });
+        if (!window.SAMPLE_LM) await new Promise((res, rej) => { const s = document.createElement('script'); s.src = (document.querySelector('script[src*="whatif-core.js"]').getAttribute('src') || '').replace('js/whatif-core.js', 'data/sample-landmarks.js'); s.onload = res; s.onerror = rej; document.head.append(s); });
         base = toCanvas(await loadImage(SAMPLE), 900); lm = window.SAMPLE_LM; draw();
         sweep();
       } catch (e) { el.style.display = 'none'; }
