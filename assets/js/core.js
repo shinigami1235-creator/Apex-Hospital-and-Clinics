@@ -21,6 +21,18 @@
   const SOC = {facebook:'facebook', instagram:'instagram', tiktok:'tiktok', youtube:'youtube', x:'x', line:'line', whatsapp:'whatsapp'};
   A.socIcon = k => A.ic(SOC[k] || 'globe');
   A.yt = id => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  /* Facebook page plugin. These pages block their posts from showing on other sites, so they get the short page card */
+  A.fbFeed = f => !/ApexProfoundBeauty|Apexmedicalcenterchinese/i.test(f.h);
+  A.fbFrame = (f, h, tabs) => `<div class="fbframe${tabs ? '' : ' card'} rv"><div class="fbhead">${A.ic('facebook')}<a href="${f.h}" target="_blank" rel="noopener"><b>${A.esc(f.x)}</b></a></div><iframe data-fb="${encodeURIComponent(f.h)}" data-h="${h}" data-tabs="${tabs}" loading="lazy" height="${h}" title="${A.esc(f.x)} · Facebook" allow="encrypted-media"></iframe></div>`;
+  A.fbMount = root => {
+    const set = () => A.qsa('iframe[data-fb]', root).forEach(fr => {
+      const w = Math.max(180, Math.min(500, Math.floor(fr.clientWidth)));
+      if (!fr.clientWidth || Math.abs(w - (+fr.dataset.w || 0)) < 30) return;
+      fr.dataset.w = w;
+      fr.src = `https://www.facebook.com/plugins/page.php?href=${fr.dataset.fb}&tabs=${fr.dataset.tabs}&width=${w}&height=${fr.dataset.h}&small_header=${fr.dataset.tabs ? 'true' : 'false'}&adapt_container_width=true&hide_cover=false&show_facepile=false`;
+    });
+    set(); let t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(set, 300); });
+  };
 
   /* ---------- language ---------- */
   A.lang = (document.documentElement.lang || 'en').slice(0, 2);

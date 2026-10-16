@@ -171,9 +171,10 @@ APEX.boot(() => {
 
   /* ---------- 12. updates: facebook + latest posts ---------- */
   A.qs('#latest-h').textContent = H.latestH;
-  const fbw = Math.min(500, A.qs('#fb').clientWidth - 20 || 480), FB = S.fb[0];
+  const FB = S.fb.find(A.fbFeed) || S.fb[0];
   A.qs('#latest-link').lastElementChild.previousSibling.nodeValue = FB.x + ' ';
-  A.qs('#fb').innerHTML = `<div class="fbhead">${A.ic('facebook')}<b>${A.esc(FB.x)}</b></div><iframe loading="lazy" title="${A.esc(FB.x)} · Facebook" height="620" src="https://www.facebook.com/plugins/page.php?href=${encodeURIComponent(FB.h)}&tabs=timeline&width=${fbw}&height=620&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false" allow="encrypted-media"></iframe>`;
+  { const t = document.createElement('div'); t.innerHTML = A.fbFrame(FB, 620, A.fbFeed(FB) ? 'timeline' : ''); const box = A.qs('#fb'); box.innerHTML = t.firstElementChild.innerHTML; box.classList.toggle('card', t.firstElementChild.classList.contains('card')); }
+  A.fbMount(A.qs('#fb'));
   A.qs('#posts').innerHTML = H.posts.map((p, i) => `<a class="pcard rv" data-d="${i * 70}" href="article.html?p=${encodeURIComponent(p.key)}"><div class="ph"><img loading="lazy" src="${A.img(p.img)}" alt="${A.esc(p.alt)}"></div><div><span class="cat">${A.esc(p.cat)}</span><h3>${A.esc(p.title)}</h3><p>${A.esc(p.excerpt)}</p></div></a>`).join('')
     + `<a class="link-arrow rv" href="blog.html" style="margin:10px 12px">${A.esc(A.t('Blog'))} ${A.ic('arrow-right')}</a>`;
 

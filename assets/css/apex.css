@@ -848,3 +848,11 @@ html[lang="zh"] h1,html[lang="zh"] h2,html[lang="zh"] .h-xl,html[lang="zh"] .h-l
 }
 .dhead .btn{white-space:normal;max-width:100%;height:auto;min-height:40px;padding-top:8px;padding-bottom:8px;text-align:left}
 @media (max-width:1280px){.hero.ready .plate.p1{transform:translate3d(16px,-16px,-40px)}.hero.ready .plate.p2{transform:translate3d(32px,-32px,-80px)}}
+
+/* facebook: feeds sized to their box; pages that block posts show the short page card */
+.fb-cards{display:grid;gap:24px;align-content:start}
+.fbframe iframe{max-width:100%}
+/* header links stay on one line; padding tightens on narrower desktops */
+.hdr-nav>a,.hdr-nav>.has-mega>button{white-space:nowrap;padding:0 clamp(7px,.85vw,14px)}
+.hdr-nav{min-width:0}
+@media (max-width:1380px){.hdr-nav{display:none}.burger{display:inline-flex}}
