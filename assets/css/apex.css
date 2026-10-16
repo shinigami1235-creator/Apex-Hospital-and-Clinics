@@ -767,7 +767,7 @@ html,body{overflow-x:clip}main>section{overflow-x:clip}
 .bio p{margin:0 0 1.5em;transition:opacity .5s,color .5s}
 .bio p.big{font-size:clamp(25px,2.3vw,34px);line-height:1.32;letter-spacing:-.02em;color:var(--ink);padding:.3em 0 .3em 26px;border-left:3px solid var(--plum)}
 .bio.reading p:not(.on){opacity:.36}
-@media (max-width:900px){.f-side{position:static}.f-rail{display:none}.f-media{grid-template-columns:1fr}.founder .ph{width:100%;max-width:440px}.bio.reading p:not(.on){opacity:1}}
+@media (max-width:900px){.founder{grid-template-columns:minmax(0,1fr);gap:32px}.f-side{position:static}.f-rail{display:none}.f-media{grid-template-columns:minmax(0,1fr)}.founder .ph{width:100%;max-width:440px;min-width:0}.bio p.big{font-size:clamp(21px,5.6vw,25px)}.bio.reading p:not(.on){opacity:1}}
 
 /* partners: full colour, they grow as they pass the middle */
 .logos{padding:26px 0}
