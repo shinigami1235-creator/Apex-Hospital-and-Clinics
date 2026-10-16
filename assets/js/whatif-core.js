@@ -6,6 +6,7 @@
   const EYE_L = [263,249,390,373,374,380,381,382,362,398,384,385,386,387,388,466];
   const BROW_R = [70,63,105,66,107,55,65,52,53,46];
   const BROW_L = [300,293,334,296,336,285,295,282,283,276];
+  const NOSE = [129,64,98,97,2,326,327,294,358,4];
   const LIPS = [61,146,91,181,84,17,314,405,321,375,291,409,270,269,267,0,37,39,40,185];
   const AREAS = {
     forehead:   {x:'Forehead',             treat:'Botox'},
@@ -25,14 +26,14 @@
     const lift = (pt, k) => [pt[0] + up[0] * k, pt[1] + up[1] * k];
     const shapes = {};
     // forehead: hairline arc (lifted a little) down to the top of both brows
-    const top = [54,103,67,109,10,338,297,332,284].map(i => lift(p(i), .12));
+    const top = [54,103,67,109,10,338,297,332,284].map(i => lift(p(i), .2));
     shapes.forehead = [{poly: top.concat([300,293,334,296,336,9,107,66,105,63,70].map(p))}];
     shapes.glabella = [{poly: [107,9,336,285,417,168,193,55].map(p).map(q => lift(q, .05))}];
     // crow's feet: soft ellipses beyond the outer eye corners
     shapes.crowsfeet = [[33,133],[263,362]].map(([o, inn]) => {
       const a = p(o), b = p(inn), ew = dist(a, b);
       const d = [(a[0] - b[0]) / ew, (a[1] - b[1]) / ew];
-      return {ell:[a[0] + d[0] * ew * .42, a[1] + d[1] * ew * .42 + ew * .05, ew * .5, ew * .72, Math.atan2(d[1], d[0])]};
+      return {ell:[a[0] + d[0] * ew * .42, a[1] + d[1] * ew * .45 + ew * .08, ew * .58, ew * .82, Math.atan2(d[1], d[0])]};
     });
     // nasolabial: a capsule from the side of the nose to the corner of the mouth
     shapes.nasolabial = [[129,61,1],[358,291,-1]].map(([n, m, s]) => {
@@ -60,46 +61,98 @@
     x.lineJoin = 'round';
     [EYE_R, EYE_L, LIPS].forEach(ix => { poly(x, ix.map(p)); x.lineWidth = faceW * .035; x.strokeStyle = '#000'; x.stroke(); x.fill(); });
     [BROW_R, BROW_L].forEach(ix => { poly(x, ix.map(p)); x.lineWidth = faceW * .02; x.stroke(); x.fill(); });
+    poly(x, NOSE.map(p)); x.lineWidth = faceW * .03; x.stroke(); x.fill();
     return {mask:c, faceW};
   }
 
-  function blurCopy(src, r){
-    const c = document.createElement('canvas'); c.width = src.width; c.height = src.height;
-    const x = c.getContext('2d'); x.filter = `blur(${r}px)`;
-    // pad edges by drawing with a margin so the blur does not darken borders
-    x.drawImage(src, 0, 0);
-    return x.getImageData(0, 0, c.width, c.height).data;
+  /* box mean over a (2r+1)^2 window, separable running sums, edges clamped */
+  function box(src, w, h, r){
+    const tmp = new Float32Array(w * h), out = new Float32Array(w * h), n = 2 * r + 1;
+    for (let y = 0; y < h; y++) {
+      const o = y * w; let acc = 0;
+      for (let k = -r; k <= r; k++) acc += src[o + Math.min(w - 1, Math.max(0, k))];
+      for (let x = 0; x < w; x++) {
+        tmp[o + x] = acc / n;
+        acc += src[o + Math.min(w - 1, x + r + 1)] - src[o + Math.max(0, x - r)];
+      }
+    }
+    for (let x = 0; x < w; x++) {
+      let acc = 0;
+      for (let k = -r; k <= r; k++) acc += tmp[Math.min(h - 1, Math.max(0, k)) * w + x];
+      for (let y = 0; y < h; y++) {
+        out[y * w + x] = acc / n;
+        acc += tmp[Math.min(h - 1, y + r + 1) * w + x] - tmp[Math.max(0, y - r) * w + x];
+      }
+    }
+    return out;
   }
 
-  /* src: canvas with the photo; lm: normalized landmarks; areas: array of keys; s: 0..1 */
-  function simulate(src, lm, areas, s){
+  /* src: canvas with the photo; lm: normalized landmarks; areas: array of keys; s: 0..1
+     1. edge-aware (guided) smoothing flattens fine lines but keeps brows, eyes and hairline sharp
+     2. creases (darker than the skin around them) are filled toward that skin tone
+     3. a little of the original fine grain goes back on so skin does not look plastic */
+  let cache = null;   // heavy filtering per photo + areas; the strength slider only re-blends
+  function prepare(src, lm, areas){
+    const key = areas.join();
+    if (cache && cache.src === src && cache.lm === lm && cache.key === key) return cache;
     const W = src.width, H = src.height;
-    const out = document.createElement('canvas'); out.width = W; out.height = H;
+    const {mask, faceW} = buildMask(lm, W, H, areas);
+    const M = mask.getContext('2d').getImageData(0, 0, W, H).data;
+    // work only inside the box around the mask
+    let x0 = W, y0 = H, x1 = -1, y1 = -1;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (M[(y * W + x) * 4 + 3] > 2) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    if (x1 < 0) return (cache = {src, lm, key, empty:true});
+    const r = Math.max(3, Math.round(faceW * .03)), rc = Math.max(4, Math.round(faceW * .045)), rf = 1;
+    const pad = rc + 2;
+    x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad); x1 = Math.min(W - 1, x1 + pad); y1 = Math.min(H - 1, y1 + pad);
+    const w = x1 - x0 + 1, h = y1 - y0 + 1, N = w * h, eps = 34 * 34;
+    const d0 = src.getContext('2d').getImageData(x0, y0, w, h).data;
+    const ch = [0, 1, 2].map(c => { const a = new Float32Array(N); for (let i = 0; i < N; i++) a[i] = d0[i * 4 + c]; return a; });
+    const L = new Float32Array(N);
+    for (let i = 0; i < N; i++) L[i] = .3 * ch[0][i] + .59 * ch[1][i] + .11 * ch[2][i];
+    const Lm = box(L, w, h, rc);
+    // guided filter per channel, self-guided
+    const sm = ch.map(p => {
+      const p2 = new Float32Array(N); for (let i = 0; i < N; i++) p2[i] = p[i] * p[i];
+      const mp = box(p, w, h, r), mpp = box(p2, w, h, r);
+      const A = new Float32Array(N), B = new Float32Array(N);
+      for (let i = 0; i < N; i++) { const v = mpp[i] - mp[i] * mp[i]; A[i] = v / (v + eps); B[i] = (1 - A[i]) * mp[i]; }
+      const ma = box(A, w, h, r), mb = box(B, w, h, r), fine = box(p, w, h, rf), mc = box(p, w, h, rc);
+      const q = new Float32Array(N);
+      for (let i = 0; i < N; i++) q[i] = ma[i] * p[i] + mb[i];
+      return {q, fine, mc};
+    });
+    return (cache = {src, lm, key, M, W, x0, y0, w, h, ch, L, Lm, sm, d0});
+  }
+
+  /* src: canvas with the photo; lm: normalized landmarks; areas: array of keys; s: 0..1
+     1. edge-aware (guided) smoothing softens fine lines but keeps brows, eyes and hairline sharp
+     2. creases (darker than the skin around them) are lifted to that skin tone, lighten only
+     3. light pores and a little fine grain stay so skin does not look plastic */
+  function simulate(src, lm, areas, s){
+    const out = document.createElement('canvas'); out.width = src.width; out.height = src.height;
     const ox = out.getContext('2d');
     ox.drawImage(src, 0, 0);
     if (!areas.length || s <= 0) return out;
-    const {mask, faceW} = buildMask(lm, W, H, areas);
-    const I = ox.getImageData(0, 0, W, H), d = I.data;
-    const M = mask.getContext('2d').getImageData(0, 0, W, H).data;
-    const B1 = blurCopy(src, Math.max(1, faceW * .006));
-    const B2 = blurCopy(src, Math.max(2, faceW * .02));
-    const k = Math.min(1, s);
-    for (let i = 0; i < d.length; i += 4) {
-      const m = M[i + 3] / 255 * k;
+    const C = prepare(src, lm, areas);
+    if (C.empty) return out;
+    const {M, W, x0, y0, w, h, ch, L, Lm, sm} = C, k = Math.min(1, s);
+    const I = new ImageData(new Uint8ClampedArray(C.d0), w, h), d = I.data;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const i = y * w + x, m = M[((y + y0) * W + x + x0) * 4 + 3] / 255 * k;
       if (m < .004) continue;
-      const L = .3 * d[i] + .59 * d[i+1] + .11 * d[i+2];
-      const L2 = .3 * B2[i] + .59 * B2[i+1] + .11 * B2[i+2];
-      const crease = Math.max(0, Math.min(1, (L2 - L) / 18));   // darker than surroundings = a line
-      const lift = m * (.55 + .45 * crease) * crease;
-      const smooth = m * .38;
+      const crease = Math.max(0, Math.min(1, (Lm[i] - L[i] - 1) / 7));   // darker than the skin around it = a line
+      const glow = Math.max(0, Math.min(1, (L[i] - Lm[i]) / 10));         // a light pore or highlight: keep it
       for (let c = 0; c < 3; c++) {
-        let v = d[i+c];
-        v += (B2[i+c] - v) * lift;          // fill the line toward the surrounding skin
-        v += (B1[i+c] - v) * smooth;        // soften fine texture
-        d[i+c] = v;
+        const o = ch[c][i], S = sm[c];
+        let v = o + (S.q[i] - o) * m * .55 * (1 - glow * .7);           // soften, but less on highlights
+        v += Math.max(0, S.mc[i] - v) * m * crease;                     // lift lines up to the skin tone (lighten only)
+        v += (o - S.fine[i]) * .3 * m;                                  // fine grain back on
+        v += m * 2;
+        d[i * 4 + c] = v;
       }
     }
-    ox.putImageData(I, 0, 0);
+    ox.putImageData(I, x0, y0);
     return out;
   }
 
