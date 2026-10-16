@@ -247,9 +247,9 @@
   /* ---------------- updates (facebook + youtube) ---------------- */
   function updates(){
     const M = A.media, H = A.home, S = A.shared;
-    const feeds = S.fb.filter(A.fbFeed), cards = S.fb.filter(f => !A.fbFeed(f));
+    const feeds = S.fb.filter(A.fbFeed);
     main().innerHTML = head([['Home','index.html'],[H.latestH]], H.latestH) + `
-      <section class="section" style="padding-top:60px"><div class="wrap"><div class="fb-duo">${feeds.map(f => A.fbFrame(f, 760, 'timeline,events')).join('')}${cards.length ? `<div class="fb-cards">${cards.map(f => A.fbFrame(f, 130, '')).join('')}</div>` : ''}</div></div></section>
+      <section class="section" style="padding-top:60px"><div class="wrap"><div class="fb-duo">${feeds.map(f => A.fbFrame(f, 760, 'timeline,events')).join('')}</div></div></section>
       <section class="section night"><div class="wrap"><div class="shead"><h2 class="h-l"><a href="${M.videos.channel}" target="_blank" rel="noopener">${A.ic('youtube')} Apex Beauty Clinic</a></h2></div>
         <div class="blog-grid" id="vids">${M.videos.hero.concat(M.videos.library).map(v => `<div class="vcard" style="width:auto"><button data-v="${v.id}"><div class="vthumb"><img loading="lazy" src="${A.yt(v.id)}" alt=""><span class="pl">${A.ic('play')}</span>${v.len ? `<span class="len">${v.len}</span>` : ''}</div><h4>${A.esc(v.t)}</h4></button></div>`).join('')}</div></div></section>
       <section class="section washed"><div class="wrap"><div class="shead"><h2 class="h-l">${A.esc(A.posts ? A.posts.page.h1 : H.latestH)}</h2><a class="link-arrow" href="blog.html">${A.esc(A.posts ? A.posts.page.h1 : '')} ${A.ic('arrow-right')}</a></div>
